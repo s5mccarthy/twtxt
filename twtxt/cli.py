@@ -276,7 +276,7 @@ def quickstart():
     click.secho("==================", fg="cyan")
     click.echo()
     # change to old version
-     help_text = "This wizard will generate a basic configuration file for twtxt with all mandatory options set. " \
+    help_text = "This wizard will generate a basic configuration file for twtxt with all mandatory options set. " \
                 "Have a look at the README.rst to get information about the other available options and their meaning."
     click.echo(textwrap.fill(help_text, width))
 
