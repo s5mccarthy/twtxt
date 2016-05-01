@@ -9,6 +9,7 @@
 import configparser
 import logging
 import os
+import datetime
 
 import click
 
@@ -37,15 +38,11 @@ class Config:
         if not os.path.exists(file):
             raise ValueError("Config file not found.")
 
-        try:
-            config_parser = configparser.ConfigParser()
-            config_parser.read(file)
+        cfg = configparser.ConfigParser()
 
-            configuration = cls(file, config_parser)
-            if not configuration.check_config_sanity():
-                raise ValueError("Error in config file.")
-            else:
-                return configuration
+        try:
+            cfg.read(file)
+            return cls(file, cfg)
         except configparser.Error:
             raise ValueError("Config file is invalid.")
 
@@ -56,7 +53,42 @@ class Config:
         return cls.from_file(file)
 
     @classmethod
-    def create_config(cls, cfgfile, nick, twtfile, twturl, disclose_identity, add_news):
+    def discover(cls):
+        """Make a guess about the config file location an try loading it."""
+        file = os.path.join(Config.config_dir, Config.config_name)
+        return cls.from_file(file)
+
+    @classmethod
+    def create_config(cls, nick, twtfile, add_news):
+        """Create a new config file at the default location.
+        :param str nick: nickname to use for own tweets
+        :param str twtfile: path to the local twtxt file
+        :param bool add_news: if true follow twtxt news feed
+        """
+        if not os.path.exists(Config.config_dir):
+            os.makedirs(Config.config_dir)
+        file = os.path.join(Config.config_dir, Config.config_name)
+
+        cfg = configparser.ConfigParser()
+
+        cfg.add_section("twtxt")
+        cfg.set("twtxt", "nick", nick)
+        cfg.set("twtxt", "twtfile", twtfile)
+        cfg.set("twtxt", "character_limit", "140")
+        # comp490 begin
+        cfg.set("twtxt", "last_viewed", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        # comp490 end
+
+        cfg.add_section("following")
+        if add_news:
+            cfg.set("following", "twtxt", "https://buckket.org/twtxt_news.txt")
+
+        conf = cls(file, cfg)
+        conf.write_config()
+        return conf
+
+    @classmethod
+    def create_config2(cls, cfgfile, nick, twtfile, twturl, disclose_identity, add_news):
         """Create a new config file at the default location.
         :param str cfgfile: path to the config file
         :param str nick: nickname to use for own tweets
@@ -91,6 +123,21 @@ class Config:
         """Writes `self.cfg` to `self.config_file`."""
         with open(self.config_file, "w") as config_file:
             self.cfg.write(config_file)
+
+    # comp490 begin
+    def update_last_viewed(self):
+        self.cfg.set("twtxt", "last_viewed", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        self.write_config()
+
+    # comp490 end
+
+    # comp490 begin
+    def get_last_viewed(self):
+        lastViewedDate = self.cfg.get("twtxt", "last_viewed")
+
+        return lastViewedDate
+
+    # comp490 end
 
     @property
     def following(self):
@@ -151,20 +198,8 @@ class Config:
         return self.cfg.getint("twtxt", "character_limit", fallback=None)
 
     @property
-    def character_warning(self):
-        return self.cfg.getint("twtxt", "character_warning", fallback=None)
-
-    @property
     def limit_timeline(self):
         return self.cfg.getint("twtxt", "limit_timeline", fallback=20)
-
-    @property
-    def timeline_update_interval(self):
-        return self.cfg.getint("twtxt", "timeline_update_interval", fallback=10)
-
-    @property
-    def use_abs_time(self):
-        return self.cfg.getboolean("twtxt", "use_abs_time", fallback=False)
 
     @property
     def timeout(self):
@@ -186,8 +221,22 @@ class Config:
     def post_tweet_hook(self):
         return self.cfg.get("twtxt", "post_tweet_hook", fallback=None)
 
+    # comp490 start
+    @property
+    def newtweets(self):
+        self.cfg.getboolean("twtxt", "newtweet", fallback=False)
+
+    # comp490 end
+
+    # comp490 start
+    @property
+    def lastmodified(self):
+        self.cfg.getboolean("twtxt", "lastmodified", fallback=False)
+
+    # comp490 end
+
     def add_source(self, source):
-        """Adds a new :class:`Source` to the config�s following section."""
+        """Adds a new :class:`Source` to the config’s following section."""
         if not self.cfg.has_section("following"):
             self.cfg.add_section("following")
 
@@ -202,7 +251,7 @@ class Config:
         return Source(nick, url) if url else None
 
     def remove_source_by_nick(self, nick):
-        """Removes a :class:`Source` form the config�s following section.
+        """Removes a :class:`Source` form the config’s following section.
         :param str nick: nickname for which will be searched in the config
         """
         if not self.cfg.has_section("following"):
@@ -231,7 +280,7 @@ class Config:
                 "sorting": self.sorting,
                 "porcelain": self.porcelain,
                 "twtfile": self.twtfile,
-                "update_interval": self.timeline_update_interval,
+                "newtweets": self.newtweets
             },
             "view": {
                 "pager": self.use_pager,
@@ -240,27 +289,6 @@ class Config:
                 "timeout": self.timeout,
                 "sorting": self.sorting,
                 "porcelain": self.porcelain,
-                "update_interval": self.timeline_update_interval,
             }
         }
         return default_map
-
-    def check_config_sanity(self):
-        """Checks if the given values in the config file are sane."""
-        is_sane = True
-
-        # This extracts some properties which cannot be checked like "nick",
-        # but it is definitely better than writing the property names as a
-        # string literal.
-        properties = [property_name for property_name, obj
-                      in self.__class__.__dict__.items()
-                      if isinstance(obj, property)]
-
-        for property_name in properties:
-            try:
-                getattr(self, property_name)
-            except ValueError as e:
-                click.echo("? Config error on {0} - {1}".format(property_name, e))
-                is_sane = False
-
-        return is_sane

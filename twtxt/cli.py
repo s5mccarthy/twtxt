@@ -283,34 +283,32 @@ def quickstart():
     click.echo()
     nick = click.prompt("➤ Please enter your desired nick", default=os.environ.get("USER", ""))
 
-
-
-#comp490 from here (overwrite_check is from twtxt's latest update from buckket, however is  heavily modified because it didn't do what specifications required)
-    def overwrite_check(path): 
+    # comp490 from here (overwrite_check is from twtxt's latest update from buckket, however is  heavily modified because it didn't do what specifications required)
+    def overwrite_check(path):
 
         if os.path.isfile(path):
             if click.confirm("➤ '{0}' already exists. Overwrite?".format(path)):
-               print("file will be overwritten")
+                print("file will be overwritten")
             else:
                 cfgfile = click.prompt("➤ Please enter the desired location for your config file",
-                os.path.join(Config.config_dir, Config.config_name),
-                type=click.Path(readable=True, writable=True, file_okay=True))
+                                       os.path.join(Config.config_dir, Config.config_name),
+                                       type=click.Path(readable=True, writable=True, file_okay=True))
 
-    def determineCF(path): #comp490
+    def determineCF(path):  # comp490
         if os.path.isfile(path):
             if click.confirm("➤ '{0}' already exists. Overwrite?".format(path)):
                 print("file will be overwritten")
                 return path
             else:
                 cfgfile = click.prompt("➤ Please enter the desired location for your config file",
-                                        os.path.join(Config.config_dir, Config.config_name),
-                                        type=click.Path(readable=True, writable=True, file_okay=True))
+                                       os.path.join(Config.config_dir, Config.config_name),
+                                       type=click.Path(readable=True, writable=True, file_okay=True))
                 return cfgfile
 
-    #cfgfile = os.path.expanduser(cfgfile) 
-    cfgfile = os.path.join(Config.config_dir, Config.config_name) #comp490
-    cfgfile = determineCF(cfgfile) #comp490
-#comp490 to here
+    # cfgfile = os.path.expanduser(cfgfile)
+    cfgfile = os.path.join(Config.config_dir, Config.config_name)  # comp490
+    cfgfile = determineCF(cfgfile)  # comp490
+    # comp490 to here
 
     twtfile = click.prompt("➤ Please enter the desired location for your twtxt file",
                            os.path.expanduser("~/twtxt.txt"),
@@ -328,7 +326,7 @@ def quickstart():
     click.echo()
     add_news = click.confirm("➤ Do you want to follow the twtxt news feed?", default=True)
 
-    conf = Config.create_config(cfgfile, nick, twtfile, twturl, disclose_identity, add_news)
+    conf = Config.create_config2(cfgfile, nick, twtfile, twturl, disclose_identity, add_news)
     open(os.path.expanduser(twtfile), "a").close()
 
     twtfile_dir = os.path.dirname(twtfile)
