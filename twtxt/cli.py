@@ -110,11 +110,11 @@ def tweet(ctx, created_at, twtfile, text):
 @click.option("--cache/--no-cache",
               is_flag=True,
               help="Cache remote twtxt files locally. (Default: True)")
-#comp490 -begin
+# comp490 -begin
 @click.option("--newtweets", "-nt",
               is_flag=True,
               help="Only shows tweets that have not been viewed yet.")
-#comp490 -end
+# comp490 -end
 @click.pass_context
 def timeline(ctx, pager, limit, twtfile, sorting, timeout, porcelain, source, cache, newtweets):
     """Retrieve your personal timeline."""
@@ -141,13 +141,13 @@ def timeline(ctx, pager, limit, twtfile, sorting, timeout, porcelain, source, ca
     if pager:
         click.echo_via_pager(style_timeline(tweets, porcelain))
         updateLastViewed = ctx.obj["conf"].update_last_viewed()
-    #comp490 begin
+    # comp490 begin
     elif newtweets:
         lastViewed = ctx.obj["conf"].get_last_viewed()
         tweets = get_new_tweets(tweets, lastViewed)
         click.echo(tweets)
         ctx.obj["conf"].update_last_viewed()
-    #comp490 end
+    # comp490 end
     else:
         click.echo(style_timeline(tweets, porcelain))
         updateLastViewed = ctx.obj["conf"].update_last_viewed()
@@ -171,10 +171,10 @@ def timeline(ctx, pager, limit, twtfile, sorting, timeout, porcelain, source, ca
 @click.option("--cache/--no-cache",
               is_flag=True,
               help="Cache remote twtxt files locally. (Default: True)")
-#comp490 -begin
-#@click.option("--new", "-n",
+# comp490 -begin
+# @click.option("--new", "-n",
 #              help="Only shows tweets that have not been viewed yet.")
-#comp490 -end
+# comp490 -end
 @click.argument("source")
 @click.pass_context
 def view(ctx, **kwargs):
@@ -191,7 +191,7 @@ def view(ctx, **kwargs):
 @click.option("--porcelain", is_flag=True,
               help="Style output in an easy-to-parse format. (Default: False)")
 @click.option("--lastmodified", "-lm",
-              help="Shows the last modified date of your followings")      
+              help="Shows the last modified date of your followings")
 @click.pass_context
 def following(ctx, check, timeout, porcelain, lastmodified):
     """Return the list of sources you’re following."""
@@ -303,8 +303,11 @@ def quickstart():
     twtfile = click.prompt("➤ Please enter the desired location for your twtxt file",
                            os.path.expanduser("~/twtxt.txt"),
                            type=click.Path(readable=True, writable=True, file_okay=True))
-
-    twtfile = os.path.expanduser(twtfile)
+    twtfile_dir = os.path.dirname(twtfile)
+    if not os.path.exists(twtfile_dir):
+        os.makedirs(twtfile_dir)
+    #twtfile = os.path.expanduser(twtfile)
+    #twtfile = determineCF(twtfile)
     overwrite_check(twtfile)
 
     twturl = click.prompt("➤ Please enter the URL your twtxt file will be accessible from",
