@@ -149,7 +149,7 @@ def timeline(ctx, pager, limit, twtfile, sorting, timeout, porcelain, source, ca
         tweets.extend(get_local_tweets(source, limit))
 
     tweets = sort_and_truncate_tweets(tweets, sorting, limit)
-    # move if not tweets here if cache dtt, works with 3/ v
+    # move if not tweets here
     if not tweets:
         return
 
@@ -272,63 +272,54 @@ def quickstart():
     width = click.get_terminal_size()[0]
     width = width if width <= 79 else 79
 
+
     click.secho("twtxt - quickstart", fg="cyan")
     click.secho("==================", fg="cyan")
     click.echo()
-    # change to old version
-     help_text = "This wizard will generate a basic configuration file for twtxt with all mandatory options set. " \
-                "Have a look at the README.rst to get information about the other available options and their meaning."
+# change to old version
+    help_text = "This wizard will generate a basic configuration file for twtxt with all mandatory options set. " \
+            "You can change all of these later with either twtxt itself or by editing the config file manually. " \
+            "Have a look at the docs to get information about the other available options and their meaning."
     click.echo(textwrap.fill(help_text, width))
 
     click.echo()
     nick = click.prompt("➤ Please enter your desired nick", default=os.environ.get("USER", ""))
 
 
-
-#comp490 from here (overwrite_check is from twtxt's latest update from buckket, however is  heavily modified because it didn't do what specifications required)
-    def overwrite_check(path): 
-
+    def overwrite_check(path):
         if os.path.isfile(path):
-            if click.confirm("➤ '{0}' already exists. Overwrite?".format(path)):
-               print("file will be overwritten")
-            else:
-                cfgfile = click.prompt("➤ Please enter the desired location for your config file",
-                os.path.join(Config.config_dir, Config.config_name),
-                type=click.Path(readable=True, writable=True, file_okay=True))
-
-    def determineCF(path): #comp490
+            click.confirm("➤ '{0}' already exists. Overwrite?".format(path), abort=True)
+			
+	def overwrite_check_con(path):
         if os.path.isfile(path):
-            if click.confirm("➤ '{0}' already exists. Overwrite?".format(path)):
-                print("file will be overwritten")
-                return path
-            else:
-                cfgfile = click.prompt("➤ Please enter the desired location for your config file",
-                                        os.path.join(Config.config_dir, Config.config_name),
-                                        type=click.Path(readable=True, writable=True, file_okay=True))
-                return cfgfile
+            click.confirm("➤ '{0}' already exists. Overwrite?".format(path), abort=False)	
 
-    #cfgfile = os.path.expanduser(cfgfile) 
-    cfgfile = os.path.join(Config.config_dir, Config.config_name) #comp490
-    cfgfile = determineCF(cfgfile) #comp490
-#comp490 to here
+    #cfgfile = click.prompt("➤ Please enter the desired location for your config file",
+                               #os.path.join(Config.config_dir, Config.config_name),
+                               #type=click.Path(readable=True, writable=True, file_okay=True))
+    #cfgfile = os.path.expanduser(cfgfile)
+    configf = os.path.join(Config.config_dir, Config.config_name)
+    overwrite_check_con(configf)
 
     twtfile = click.prompt("➤ Please enter the desired location for your twtxt file",
                            os.path.expanduser("~/twtxt.txt"),
                            type=click.Path(readable=True, writable=True, file_okay=True))
 
+
     twtfile = os.path.expanduser(twtfile)
     overwrite_check(twtfile)
 
+
     twturl = click.prompt("➤ Please enter the URL your twtxt file will be accessible from",
-                          default="https://example.org/twtxt.txt")
+                      default="https://example.org/twtxt.txt")
 
     disclose_identity = click.confirm("➤ Do you want to disclose your identity? Your nick and URL will be shared when "
-                                      "making HTTP requests", default=False)
+                                  "making HTTP requests", default=False)
 
     click.echo()
     add_news = click.confirm("➤ Do you want to follow the twtxt news feed?", default=True)
 
-    conf = Config.create_config(cfgfile, nick, twtfile, twturl, disclose_identity, add_news)
+    conf = Config.create_config(configf, nick, twtfile, twturl, disclose_identity, add_news)
     open(os.path.expanduser(twtfile), "a").close()
 
     twtfile_dir = os.path.dirname(twtfile)

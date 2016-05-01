@@ -1,9 +1,7 @@
 """
     twtxt.config
     ~~~~~~~~~~~~
-
     This module implements the config file parser/writer.
-
     :copyright: (c) 2016 by buckket.
     :license: MIT, see LICENSE for more details.
 """
@@ -21,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 class Config:
     """:class:`Config` interacts with the configuration file.
-
     :param str config_file: full path to the loaded config file
     :param ~configparser.ConfigParser cfg: a :class:`~configparser.ConfigParser` object with config loaded
     """
@@ -35,7 +32,6 @@ class Config:
     @classmethod
     def from_file(cls, file):
         """Try loading given config file.
-
         :param str file: full path to the config file to load
         """
         if not os.path.exists(file):
@@ -60,31 +56,34 @@ class Config:
         return cls.from_file(file)
 
     @classmethod
-    def create_config(cls, nick, twtfile, disclose_identity, add_news):
+    def create_config(cls, cfgfile, nick, twtfile, twturl, disclose_identity, add_news):
         """Create a new config file at the default location.
-
+        :param str cfgfile: path to the config file
         :param str nick: nickname to use for own tweets
         :param str twtfile: path to the local twtxt file
+        :param str twturl: URL to the remote twtxt file
         :param bool disclose_identity: if true the users id will be disclosed
         :param bool add_news: if true follow twtxt news feed
         """
-        if not os.path.exists(Config.config_dir):
-            os.makedirs(Config.config_dir)
-        file = os.path.join(Config.config_dir, Config.config_name)
+        cfgfile_dir = os.path.dirname(cfgfile)
+        if not os.path.exists(cfgfile_dir):
+            os.makedirs(cfgfile_dir)
 
         cfg = configparser.ConfigParser()
 
         cfg.add_section("twtxt")
         cfg.set("twtxt", "nick", nick)
         cfg.set("twtxt", "twtfile", twtfile)
+        cfg.set("twtxt", "twturl", twturl)
         cfg.set("twtxt", "disclose_identity", str(disclose_identity))
         cfg.set("twtxt", "character_limit", "140")
+        cfg.set("twtxt", "character_warning", "140")
 
         cfg.add_section("following")
         if add_news:
             cfg.set("following", "twtxt", "https://buckket.org/twtxt_news.txt")
 
-        conf = cls(file, cfg)
+        conf = cls(cfgfile, cfg)
         conf.write_config()
         return conf
 
@@ -152,8 +151,16 @@ class Config:
         return self.cfg.getint("twtxt", "character_limit", fallback=None)
 
     @property
+    def character_warning(self):
+        return self.cfg.getint("twtxt", "character_warning", fallback=None)
+
+    @property
     def limit_timeline(self):
         return self.cfg.getint("twtxt", "limit_timeline", fallback=20)
+
+    @property
+    def timeline_update_interval(self):
+        return self.cfg.getint("twtxt", "timeline_update_interval", fallback=10)
 
     @property
     def use_abs_time(self):
@@ -180,7 +187,7 @@ class Config:
         return self.cfg.get("twtxt", "post_tweet_hook", fallback=None)
 
     def add_source(self, source):
-        """Adds a new :class:`Source` to the config’s following section."""
+        """Adds a new :class:`Source` to the config�s following section."""
         if not self.cfg.has_section("following"):
             self.cfg.add_section("following")
 
@@ -189,15 +196,13 @@ class Config:
 
     def get_source_by_nick(self, nick):
         """Returns the :class:`Source` of the given nick.
-
         :param str nick: nickname for which will be searched in the config
         """
         url = self.cfg.get("following", nick, fallback=None)
         return Source(nick, url) if url else None
 
     def remove_source_by_nick(self, nick):
-        """Removes a :class:`Source` form the config’s following section.
-
+        """Removes a :class:`Source` form the config�s following section.
         :param str nick: nickname for which will be searched in the config
         """
         if not self.cfg.has_section("following"):
@@ -226,6 +231,7 @@ class Config:
                 "sorting": self.sorting,
                 "porcelain": self.porcelain,
                 "twtfile": self.twtfile,
+                "update_interval": self.timeline_update_interval,
             },
             "view": {
                 "pager": self.use_pager,
@@ -234,6 +240,7 @@ class Config:
                 "timeout": self.timeout,
                 "sorting": self.sorting,
                 "porcelain": self.porcelain,
+                "update_interval": self.timeline_update_interval,
             }
         }
         return default_map
@@ -253,7 +260,7 @@ class Config:
             try:
                 getattr(self, property_name)
             except ValueError as e:
-                click.echo("✗ Config error on {0} - {1}".format(property_name, e))
+                click.echo("? Config error on {0} - {1}".format(property_name, e))
                 is_sane = False
 
         return is_sane
