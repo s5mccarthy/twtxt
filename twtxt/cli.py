@@ -284,9 +284,20 @@ def quickstart():
                                        os.path.join(Config.config_dir, Config.config_name),
                                        type=click.Path(readable=True, writable=True, file_okay=True))
 
+    
+    def user_preference(path):
+        if click.confirm("➤ '{0}' already exists. Overwrite?".format(path)):
+            return True
+        else:
+            return False
+
+    def g():
+        return True
+
+
     def determineCF(path):  # comp490
         if os.path.isfile(path):
-            if click.confirm("➤ '{0}' already exists. Overwrite?".format(path)):
+            if user_preference(path):
                 print("file will be overwritten")
                 return path
             else:
