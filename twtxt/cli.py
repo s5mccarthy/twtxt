@@ -273,7 +273,7 @@ def quickstart():
     click.echo()
     nick = click.prompt("➤ Please enter your desired nick", default=os.environ.get("USER", ""))
 
-    # comp490 from here (overwrite_check is from twtxt's latest update from buckket, however is  heavily modified because it didn't do what specifications required)
+    # COMP490 FROM HERE------------------ (overwrite_check is from twtxt's latest update from buckket, however is  heavily modified because it didn't do what specifications required)
     def overwrite_check(path):
 
         if os.path.isfile(path):
@@ -291,7 +291,7 @@ def quickstart():
         else:
             return False
 
-    def g():
+    def g(): #best function ever.
         return True
 
 
@@ -309,7 +309,7 @@ def quickstart():
     # cfgfile = os.path.expanduser(cfgfile)
     cfgfile = os.path.join(Config.config_dir, Config.config_name)  # comp490
     cfgfile = determineCF(cfgfile)  # comp490
-    # comp490 to here
+
 
     twtfile = click.prompt("➤ Please enter the desired location for your twtxt file",
                            os.path.expanduser("~/twtxt.txt"),
@@ -320,7 +320,7 @@ def quickstart():
     #twtfile = os.path.expanduser(twtfile)
     #twtfile = determineCF(twtfile)
     overwrite_check(twtfile)
-
+#COMP490 TO HERE------------------
     twturl = click.prompt("➤ Please enter the URL your twtxt file will be accessible from",
                           default="https://example.org/twtxt.txt")
 

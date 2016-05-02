@@ -16,29 +16,31 @@ from classcli import Cliclass
 
 
 class myTestClass(unittest.TestCase):
-
-
     def test_overwrites_config_ask(self):
-         cfgfile = os.path.join(Config.config_dir, Config.config_name)
-         self.assertEqual(Cliclass.determineCF(cfgfile), cfgfile)
-
-    #
-    @property
-    def test_creates_configpath_successfully(self):
-        test=False
-        path = os.path.join(Config.config_dir, Config.config_name)
-        if os.path.isfile(path):
-           test = True
-        self.assertEqual(test, True)
-
-    @property
-    def test_creates_twtxtdir_successfully(self):
-        return False
+        cfgfile = os.path.join(Config.config_dir, Config.config_name)
+        self.assertEqual(Cliclass.determineCF(cfgfile), cfgfile)
+        #self.assertEqaul(True)
 
 
-    def test_overwrite_twtxtdir_successfully(self):
-        twtfile_dir = os.path.dirname(twtfile)
-        self.assertTrue(Cliclass.overwrite_check(twtfile), True)
+#
+@property
+def test_creates_configpath_successfully(self):
+    test = False
+    path = os.path.join(Config.config_dir, Config.config_name)
+    if os.path.isfile(path):
+        test = True
+    self.assertEqual(test, True)
+
+
+@property
+def test_creates_twtxtdir_successfully(self):
+    return False
+
+
+def test_overwrite_twtxtdir_successfully(self):
+    twtfile_dir = os.path.dirname(twtfile)
+    self.assertTrue(Cliclass.overwrite_check(twtfile), True)
+    return True
 
 
 if __name__ == '__main__':
